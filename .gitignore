@@ -1,0 +1,57 @@
+# Build folders
+debug/
+Debug/
+release/
+Release/
+bin/
+obj/
+
+# Visual Studio
+'thumbs.db
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# VS Code
+.vscode/
+.history/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Packages
+*.nupkg
+packages/
+
+# SQLite database files
+Tesko.db
+Tesko.db-wal
+Tesko.db-shm
+
+# ASP.NET secret files
+secrets.json
+
+# IDE specific
+.idea/
+*.swp
+
+# Generated files
+wwwroot/lib/
+
+# Coverage
+coverage/
+*.coverage
+*.coveragexml
+
+# Publish
+publish/
+*.PublishSettings
+
+# Docker
+.docker/
+Dockerfile.*

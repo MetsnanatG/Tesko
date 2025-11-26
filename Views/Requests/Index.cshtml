@@ -1,0 +1,46 @@
+@model IEnumerable<Tesko.Models.Request>
+
+@{
+    ViewData["Title"] = "My Requests";
+}
+
+<h1>My Requests</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">New Request</a>
+</p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Asset</th>
+            <th>Quantity</th>
+            <th>Purpose</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Approver</th>
+            <th>Comment</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+    var statusClass = item.Status == "Approved" ? "text-success" : (item.Status == "Rejected" ? "text-danger" : "text-warning");
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Asset.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+            <td>@Html.DisplayFor(modelItem => item.Purpose)</td>
+            <td>@item.RequestDate.ToShortDateString()</td>
+            <td class="@statusClass fw-bold">@Html.DisplayFor(modelItem => item.Status)</td>
+            <td>@Html.DisplayFor(modelItem => item.Approver.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Comment)</td>
+        </tr>
+}
+    </tbody>
+</table>

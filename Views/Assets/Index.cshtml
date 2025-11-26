@@ -1,0 +1,43 @@
+@model IEnumerable<Tesko.Models.Asset>
+
+@{
+    ViewData["Title"] = "Inventory Management";
+}
+
+<h1>Inventory Management</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Asset</a>
+</p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Type)</th>
+            <th>Total</th>
+            <th>Available</th>
+            <th>Allocated</th>
+            <th>Defective</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+    var statusClass = item.AvailableStock < item.LowStockThreshold ? "text-danger fw-bold" : "text-success";
+    var statusText = item.AvailableStock < item.LowStockThreshold ? "Low Stock" : "In Stock";
+        <tr>
+            <td>@Html.DisplayFor(modelItem => item.Name)</td>
+            <td>@Html.DisplayFor(modelItem => item.Type)</td>
+            <td>@Html.DisplayFor(modelItem => item.TotalStock)</td>
+            <td>@Html.DisplayFor(modelItem => item.AvailableStock)</td>
+            <td>@Html.DisplayFor(modelItem => item.AllocatedStock)</td>
+            <td>@Html.DisplayFor(modelItem => item.DefectiveStock)</td>
+            <td class="@statusClass">@statusText</td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-secondary">Edit</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
