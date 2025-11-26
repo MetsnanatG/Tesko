@@ -28,6 +28,10 @@ A modern, .NET-based web application designed to streamline the request, approva
 ### 3. Real-Time Updates
 - **SignalR Integration:** Live dashboard updates without page refresh.
 - **Event Broadcasting:** Changes to requests automatically notify all connected clients.
+- **Persistent Notifications:** 
+    - **Badge System:** Real-time red badge on the notification bell for new events.
+    - **Database Backed:** Notifications persist across logins and page refreshes until marked as read.
+    - **History:** Users can see past notifications even if they were offline when the event occurred.
 - **Persistent Data:** SQLite database ensures data persists across application restarts.
 
 ### 4. Modern UI/UX
@@ -173,8 +177,12 @@ To view and manage your SQLite database in VS Code:
 
 ### SignalR Hub
 - **Endpoint:** `/dashboardHub`
-- **Message:** `ReceiveDashboardUpdate` broadcast after request lifecycle events (Create, Approve, Reject).
-- **Client-Side:** Automatic fetch from `/Home/GetDashboardData` and DOM updates without page refresh.
+- **Messages:** 
+    - `ReceiveDashboardUpdate`: Broadcast after request lifecycle events (Create, Approve, Reject).
+    - `ReceiveNotification`: Targeted message to specific users when they receive a new notification.
+- **Client-Side:** 
+    - Automatic fetch from `/Home/GetDashboardData` for dashboard metrics.
+    - Automatic fetch from `/Notifications/GetUnreadNotifications` for the notification badge.
 
 ### Testing Real-Time Updates
 1.  Open the dashboard in one browser tab.
@@ -201,11 +209,13 @@ Tesko/
 │   ├── HomeController.cs
 │   ├── RequestsController.cs
 │   ├── AssetsController.cs
-│   └── UsersController.cs
+│   ├── UsersController.cs
+│   └── NotificationsController.cs
 ├── Models/               # Data Models
 │   ├── User.cs
 │   ├── Asset.cs
 │   ├── Request.cs
+│   ├── Notification.cs
 │   ├── AuditLog.cs
 │   └── ViewModels/
 ├── Views/                # Razor Views
@@ -264,9 +274,23 @@ Tesko/
 - `Details` (string)
 - `Timestamp` (DateTime)
 
+### Notifications
+- `Id` (int, PK)
+- `UserId` (int, FK → Users)
+- `Title` (string)
+- `Message` (string)
+- `IsRead` (bool)
+- `CreatedAt` (DateTime)
+
 ---
 
 ## 📜 Changelog & Versioning
+
+### v1.5 - Persistent Notifications
+- **Feature:** Implemented a persistent notification system backed by the database.
+- **UI:** Added a notification bell with a real-time unread count badge in the navbar.
+- **API:** Created `NotificationsController` for fetching and marking notifications as read.
+- **Integration:** Connected Request workflows (Create, Approve, Reject) to automatically generate notifications.
 
 ### v1.4 - Real-Time Updates & Data Persistence
 - **SignalR Integration:** Live dashboard updates without page refresh.

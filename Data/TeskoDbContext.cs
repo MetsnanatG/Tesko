@@ -13,6 +13,7 @@ namespace Tesko.Data
         public DbSet<Asset> Assets { get; set; }
         public DbSet<Request> Requests { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

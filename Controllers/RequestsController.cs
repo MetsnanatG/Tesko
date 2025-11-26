@@ -15,12 +15,15 @@ namespace Tesko.Controllers
     {
         private readonly TeskoDbContext _context;
         private readonly IHubContext<DashboardHub> _hubContext;
+        private const string ApproversGroup = "Approvers";
 
         public RequestsController(TeskoDbContext context, IHubContext<DashboardHub> hubContext)
         {
             _context = context;
             _hubContext = hubContext;
         }
+
+        private static string GetUserGroupName(int userId) => $"User_{userId}";
 
         private int GetCurrentUserId()
         {
@@ -77,6 +80,38 @@ namespace Tesko.Controllers
                 _context.Add(audit);
                 
                 await _context.SaveChangesAsync();
+
+                var assetName = await _context.Assets
+                    .Where(a => a.Id == request.AssetId)
+                    .Select(a => a.Name)
+                    .FirstOrDefaultAsync();
+
+                // Create Notifications for Approvers
+                var approvers = await _context.Users
+                    .Where(u => u.Role == "Approver" || u.Role == "Admin")
+                    .ToListAsync();
+
+                foreach (var approver in approvers)
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = approver.Id,
+                        Title = "New Request",
+                        Message = $"{User.Identity?.Name ?? "Requester"} requested {request.Quantity} × {assetName}",
+                        RelatedRequestId = request.Id,
+                        Date = DateTime.Now
+                    });
+                }
+                await _context.SaveChangesAsync();
+
+                // Notify approvers about the new request
+                await _hubContext.Clients.Group(ApproversGroup).SendAsync("ReceiveNewRequestNotification", new
+                {
+                    requestId = request.Id,
+                    requester = User.Identity?.Name ?? "Requester",
+                    asset = assetName ?? $"Asset #{request.AssetId}",
+                    quantity = request.Quantity
+                });
                 
                 // Notify Dashboard
                 await _hubContext.Clients.All.SendAsync("ReceiveDashboardUpdate");
@@ -159,8 +194,29 @@ namespace Tesko.Controllers
             };
             _context.Add(audit);
 
+            // Create Notification for Requester
+            _context.Notifications.Add(new Notification
+            {
+                UserId = request.UserId,
+                Title = $"Request {request.Status}",
+                Message = $"{request.Asset?.Name} ({request.Quantity}) {request.Status} by {User.Identity?.Name}",
+                RelatedRequestId = request.Id,
+                Date = DateTime.Now
+            });
+
             await _context.SaveChangesAsync();
             
+            // Notify requester about approval
+            await _hubContext.Clients.Group(GetUserGroupName(request.UserId)).SendAsync("ReceiveRequestDecisionNotification", new
+            {
+                requestId = request.Id,
+                status = request.Status,
+                asset = request.Asset?.Name ?? $"Asset #{request.AssetId}",
+                quantity = request.Quantity,
+                comment = request.Comment ?? string.Empty,
+                approver = User.Identity?.Name ?? "Approver"
+            });
+
             // Notify Dashboard
             await _hubContext.Clients.All.SendAsync("ReceiveDashboardUpdate");
 
@@ -172,7 +228,9 @@ namespace Tesko.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id, string comment)
         {
-            var request = await _context.Requests.FindAsync(id);
+            var request = await _context.Requests
+                .Include(r => r.Asset)
+                .FirstOrDefaultAsync(r => r.Id == id);
             if (request == null) return NotFound();
 
             request.Status = "Rejected";
@@ -191,7 +249,27 @@ namespace Tesko.Controllers
             };
             _context.Add(audit);
 
+            // Create Notification for Requester
+            _context.Notifications.Add(new Notification
+            {
+                UserId = request.UserId,
+                Title = $"Request {request.Status}",
+                Message = $"{request.Asset?.Name} ({request.Quantity}) {request.Status} by {User.Identity?.Name}",
+                RelatedRequestId = request.Id,
+                Date = DateTime.Now
+            });
+
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group(GetUserGroupName(request.UserId)).SendAsync("ReceiveRequestDecisionNotification", new
+            {
+                requestId = request.Id,
+                status = request.Status,
+                asset = request.Asset?.Name ?? $"Asset #{request.AssetId}",
+                quantity = request.Quantity,
+                comment = comment,
+                approver = User.Identity?.Name ?? "Approver"
+            });
 
             // Notify Dashboard
             await _hubContext.Clients.All.SendAsync("ReceiveDashboardUpdate");
