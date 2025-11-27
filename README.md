@@ -1,6 +1,6 @@
 # Tesko - Test Data Management System (TDMS)
 
-A modern, .NET-based web application designed to streamline the request, approval, and tracking of telecom test assets (SIM cards, Vouchers, Devices) for QA teams.
+A modern, full-stack web application designed to streamline the request, approval, and tracking of telecom test assets (SIM cards, Vouchers, Devices) for QA teams. Features a .NET backend API with Angular frontend.
 
 ## 🚀 Features
 
@@ -35,49 +35,48 @@ A modern, .NET-based web application designed to streamline the request, approva
 - **Persistent Data:** SQLite database ensures data persists across application restarts.
 
 ### 4. Modern UI/UX
-- **Design System:** Professional "Enterprise Blue" theme using Bootstrap 5.
+- **Design System:** Professional "Enterprise Blue" theme using Bootstrap 5 and modern Angular components.
 - **Responsive:** Fully responsive layout for desktop and mobile.
 - **Interactive:** Chart.js integrations for data visualization with real-time updates.
 - **Icons:** Comprehensive use of Bootstrap Icons for better visual navigation.
 
 ## 🛠️ Tech Stack
 
-- **Framework:** .NET 10 (ASP.NET Core MVC)
+- **Backend:** .NET 10 (ASP.NET Core Web API)
+- **Frontend:** Angular 20 (Standalone Components, Reactive Signals)
 - **Real-Time:** ASP.NET Core SignalR
 - **Database:** SQLite (Lightweight, file-based, no external server required)
 - **ORM:** Entity Framework Core 10.0
-- **Authentication:** JWT (JSON Web Tokens) with Cookie-based storage
-- **Frontend:** Razor Views, Bootstrap 5, Chart.js
+- **Authentication:** JWT (JSON Web Tokens) with localStorage
+- **UI Framework:** Bootstrap 5, Angular Material-inspired components
 - **Client Library:** SignalR JS Client
 
 ## 🏁 Getting Started
 
 ### Prerequisites
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Node.js 18.x or 20.x LTS](https://nodejs.org/)
+- npm 9.x or 10.x
 
 ### Installation & Run
-1.  **Clone/Navigate to the project:**
-    ```bash
-    cd Tesko
-    ```
 
-2.  **Build the project:**
-    ```bash
-    dotnet build
-    ```
+1. **Backend Setup:**
+   ```bash
+   cd Tesko
+   dotnet build
+   dotnet run
+   ```
+   The API will start at `http://localhost:5283`.
 
-3.  **Run the application:**
-    ```bash
-    dotnet run
-    ```
-    The application will start at `http://localhost:5283`.
+2. **Frontend Setup:**
+   ```bash
+   cd tesko-frontend
+   npm ci
+   npm start
+   ```
+   The Angular app will start at `http://localhost:4200` and proxy API calls to the backend.
 
-**Note:** If using Scoop, use the full path:
-```bash
-& "C:\Users\gersum.asfaw\scoop\apps\dotnet10-sdk\current\dotnet.exe" run
-```
-
-Or set up a PowerShell alias for convenience (see [Setup Alias](#setup-powershell-alias) below).
+**Note:** The Angular dev server uses `proxy.conf.json` to forward `/api` and `/hubs` requests to the .NET backend.
 
 ### 🔐 Login Credentials (Seeded Data)
 The application comes with pre-seeded users for testing:
@@ -88,7 +87,7 @@ The application comes with pre-seeded users for testing:
 | **Approver** | Test Lead | lead@tesko.com |
 | **Requester** | Tester One | tester1@tesko.com |
 
-*Note: The login page allows you to simulate login by selecting a user from a dropdown for development convenience.*
+*Note: Use the Angular login form at `http://localhost:4200/login` to authenticate.*
 
 ---
 
@@ -204,7 +203,7 @@ To view and manage your SQLite database in VS Code:
 
 ```
 Tesko/
-├── Controllers/          # MVC Controllers
+├── Controllers/          # Web API Controllers
 │   ├── AuthController.cs
 │   ├── HomeController.cs
 │   ├── RequestsController.cs
@@ -218,7 +217,7 @@ Tesko/
 │   ├── Notification.cs
 │   ├── AuditLog.cs
 │   └── ViewModels/
-├── Views/                # Razor Views
+├── Views/                # Razor Views (for MVC fallback)
 │   ├── Home/
 │   ├── Requests/
 │   ├── Assets/
@@ -229,10 +228,25 @@ Tesko/
 │   └── TeskoDbContext.cs
 ├── Hubs/                 # SignalR Hubs
 │   └── DashboardHub.cs
-├── wwwroot/              # Static files (CSS, JS)
+├── wwwroot/              # Static files (for production Angular build)
 ├── Program.cs            # Application entry point
 ├── appsettings.json      # Configuration
 └── Tesko.csproj          # Project file
+
+tesko-frontend/           # Angular 20 SPA
+├── src/
+│   ├── app/
+│   │   ├── core/         # Services, guards, interceptors
+│   │   ├── features/     # Feature modules (auth, users, assets, etc.)
+│   │   ├── layout/       # Main layout components
+│   │   ├── models/       # TypeScript interfaces
+│   │   └── shared/       # Shared components
+│   ├── assets/
+│   ├── proxy.conf.json   # Development proxy config
+│   └── index.html
+├── angular.json
+├── package.json
+└── tsconfig.json
 ```
 
 ---
@@ -285,6 +299,14 @@ Tesko/
 ---
 
 ## 📜 Changelog & Versioning
+
+### v2.0 - Angular Frontend Integration
+- **Architecture:** Migrated from MVC Razor views to Angular 20 SPA with .NET Web API backend.
+- **Frontend:** Modern Angular app with standalone components, reactive signals, and Bootstrap 5.
+- **API Integration:** Full CRUD APIs for Users, Assets, Requests with JWT authentication.
+- **Development:** Proxy configuration for seamless frontend-backend development.
+- **UI/UX:** Sidebar navigation, responsive design, real-time notifications.
+- **Build:** Updated to support both development (separate servers) and production (single host) modes.
 
 ### v1.5 - Persistent Notifications
 - **Feature:** Implemented a persistent notification system backed by the database.
@@ -348,4 +370,4 @@ To extend this project:
 
 ---
 
-*Maintained by the Tesko Development Team. Last Updated: November 26, 2025*
+*Maintained by the Tesko Development Team. Last Updated: November 27, 2025*

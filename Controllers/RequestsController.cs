@@ -276,5 +276,78 @@ namespace Tesko.Controllers
 
             return RedirectToAction(nameof(ApprovalQueue));
         }
+
+        // API Endpoints for Angular integration
+
+        [HttpGet]
+        [Route("api/requests")]
+        public async Task<IActionResult> GetRequests()
+        {
+            var requests = await _context.Requests.Include(r => r.User).Include(r => r.Asset).ToListAsync();
+            return Ok(requests);
+        }
+
+        [HttpGet]
+        [Route("api/requests/{id}")]
+        public async Task<IActionResult> GetRequest(int id)
+        {
+            var request = await _context.Requests.Include(r => r.User).Include(r => r.Asset).FirstOrDefaultAsync(r => r.Id == id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            return Ok(request);
+        }
+
+        [HttpPost]
+        [Route("api/requests")]
+        public async Task<IActionResult> CreateRequest([FromBody] Request request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            request.UserId = GetCurrentUserId();
+            request.Status = "Pending";
+            request.RequestDate = DateTime.UtcNow;
+            _context.Requests.Add(request);
+            await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("ReceiveDashboardUpdate");
+            return CreatedAtAction(nameof(GetRequest), new { id = request.Id }, request);
+        }
+
+        [HttpPut]
+        [Route("api/requests/{id}/approve")]
+        public async Task<IActionResult> ApproveRequest(int id)
+        {
+            var request = await _context.Requests.FindAsync(id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            request.Status = "Approved";
+            request.ActionDate = DateTime.UtcNow;
+            _context.Entry(request).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("ReceiveDashboardUpdate");
+            return NoContent();
+        }
+
+        [HttpPut]
+        [Route("api/requests/{id}/reject")]
+        public async Task<IActionResult> RejectRequest(int id, [FromBody] string? reason = null)
+        {
+            var request = await _context.Requests.FindAsync(id);
+            if (request == null)
+            {
+                return NotFound();
+            }
+            request.Status = "Rejected";
+            request.Comment = reason;
+            _context.Entry(request).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("ReceiveDashboardUpdate");
+            return NoContent();
+        }
     }
 }

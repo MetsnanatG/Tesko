@@ -81,5 +81,85 @@ namespace Tesko.Controllers
         {
             return _context.Assets.Any(e => e.Id == id);
         }
+
+        // API Endpoints for Angular integration
+
+        [HttpGet]
+        [Route("api/assets")]
+        public async Task<IActionResult> GetAssets()
+        {
+            var assets = await _context.Assets.ToListAsync();
+            return Ok(assets);
+        }
+
+        [HttpGet]
+        [Route("api/assets/{id}")]
+        public async Task<IActionResult> GetAsset(int id)
+        {
+            var asset = await _context.Assets.FindAsync(id);
+            if (asset == null)
+            {
+                return NotFound();
+            }
+            return Ok(asset);
+        }
+
+        [HttpPost]
+        [Route("api/assets")]
+        public async Task<IActionResult> CreateAsset([FromBody] Asset asset)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            _context.Assets.Add(asset);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetAsset), new { id = asset.Id }, asset);
+        }
+
+        [HttpPut]
+        [Route("api/assets/{id}")]
+        public async Task<IActionResult> UpdateAsset(int id, [FromBody] Asset asset)
+        {
+            if (id != asset.Id)
+            {
+                return BadRequest();
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            _context.Entry(asset).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!AssetExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return NoContent();
+        }
+
+        [HttpDelete]
+        [Route("api/assets/{id}")]
+        public async Task<IActionResult> DeleteAsset(int id)
+        {
+            var asset = await _context.Assets.FindAsync(id);
+            if (asset == null)
+            {
+                return NotFound();
+            }
+            _context.Assets.Remove(asset);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
