@@ -18,9 +18,9 @@ namespace Tesko.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, Name = "Admin User", Email = "admin@tesko.com", Role = "Admin" },
-                new User { Id = 2, Name = "Test Lead", Email = "lead@tesko.com", Role = "Approver" },
-                new User { Id = 3, Name = "Tester One", Email = "tester1@tesko.com", Role = "Requester" }
+                new User { Id = 1, Name = "Admin User", Email = "admin@tesko.com", Role = "Admin", PasswordHash = "admin123" },
+                new User { Id = 2, Name = "Test Lead", Email = "lead@tesko.com", Role = "Approver", PasswordHash = "lead123" },
+                new User { Id = 3, Name = "Tester One", Email = "tester1@tesko.com", Role = "Requester", PasswordHash = "tester123" }
             );
             
             modelBuilder.Entity<Asset>().HasData(

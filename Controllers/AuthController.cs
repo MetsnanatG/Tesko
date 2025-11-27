@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -19,6 +20,30 @@ namespace Tesko.Controllers
             _context = context;
             _configuration = configuration;
         }
+
+        // POST: /api/auth/login (API for Angular frontend)
+        [HttpPost]
+        [Route("api/auth/login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> LoginApi([FromBody] LoginDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+                return BadRequest(new { error = "Email and password required" });
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null || user.PasswordHash != dto.Password) // Replace with secure hash check in production
+                return Unauthorized(new { error = "Invalid credentials" });
+
+            var token = GenerateJwtToken(user);
+            return Ok(new { token });
+        }
+
+        public class LoginDto
+        {
+            public string? Email { get; set; }
+            public string? Password { get; set; }
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> Login()
@@ -60,7 +85,12 @@ namespace Tesko.Controllers
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+            var keyString = jwtSettings["Key"];
+            if (string.IsNullOrEmpty(keyString))
+            {
+                throw new InvalidOperationException("JWT Key is missing in configuration.");
+            }
+            var key = Encoding.ASCII.GetBytes(keyString);
 
             var claims = new List<Claim>
             {
